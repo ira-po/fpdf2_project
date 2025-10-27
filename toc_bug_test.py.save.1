@@ -1,0 +1,50 @@
+
+from fpdf import FPDF
+from fpdf.outline import TableOfContents
+
+NUMBER_SECTIONS = 56
+
+# Функція для вставки тексту
+def p(pdf, text, **kwargs):
+    pdf.multi_cell(
+        w=pdf.epw,
+        h=pdf.font_size,
+        text=text,
+        new_x="LMARGIN",
+        new_y="NEXT",
+        **kwargs,
+    )
+
+# Клас з власним футером
+class CustomFPDF(FPDF):
+    def footer(self) -> None:
+        self.set_y(-15)
+        self.set_font("Helvetica", size=8)
+        self.cell(w=0, h=10, text="Page %s" % self.get_page_label(), align="C")
+        self.set_font("Helvetica", size=12)
+
+# Створюємо PDF
+pdf = CustomFPDF()
+pdf.set_font("Helvetica", size=12)
+
+# Римські цифри для змісту
+pdf.add_page()
+pdf.set_page_label(label_style="R")
+pdf.start_section("Test", level=0)
+pdf.insert_toc_placeholder(TableOfContents().render_toc, allow_extra_pages=True)
+
+text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+
+# Арабські цифри для основного тексту
+pdf.set_page_label(label_style="D")
+for i in range(1, NUMBER_SECTIONS):
+    if i > 1:
+        pdf.add_page()
+    pdf.start_section(f"Section {i}", level=1)
+    p(pdf, f"Section {i}")
+    p(pdf, text)
+
+pdf.output('output.pdf')
+print("PDF згенеровано: output.pdf")
+
+
